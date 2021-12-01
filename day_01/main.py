@@ -70,7 +70,7 @@ import os
 from textwrap import dedent
 
 
-def part1(nums) -> None:
+def part1(nums: list[int]) -> int:
     count = 0
     for i, num in enumerate(nums[1:], start=1):
         if num > nums[i - 1]:

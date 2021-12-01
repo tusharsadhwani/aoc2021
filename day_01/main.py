@@ -79,23 +79,40 @@ def part1(nums: list[int]) -> int:
     return count
 
 
-def test_day_01() -> None:
-    test_data = dedent(
-        """\
-        199
-        200
-        208
-        210
-        200
-        207
-        240
-        269
-        260
-        263
-        """
-    )
+def part2(nums: list[int]) -> int:
+    count = 0
+    for i, num in enumerate(nums[3:], start=3):
+        if num > nums[i - 3]:
+            count += 1
+
+    return count
+
+
+test_data = dedent(
+    """\
+    199
+    200
+    208
+    210
+    200
+    207
+    240
+    269
+    260
+    263
+    """
+)
+
+
+def test_part1() -> None:
     nums = [int(num) for num in test_data.split()]
     assert part1(nums) == 7
+
+
+def test_part2() -> None:
+    nums = [int(num) for num in test_data.split()]
+    assert part2(nums) == 5
+
 
 def main() -> None:
     with open(os.path.join(os.path.dirname(__file__), "input.txt")) as file:
@@ -103,6 +120,8 @@ def main() -> None:
 
     nums = [int(num) for num in data.split()]
     print(part1(nums))
+    print(part2(nums))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

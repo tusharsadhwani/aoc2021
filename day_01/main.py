@@ -113,7 +113,6 @@ Consider sums of a three-measurement sliding window. How many sums are
 larger than the previous sum?
 """
 import os
-from textwrap import dedent
 
 
 def part1(nums: list[int]) -> int:
@@ -134,20 +133,18 @@ def part2(nums: list[int]) -> int:
     return count
 
 
-test_data = dedent(
-    """\
-    199
-    200
-    208
-    210
-    200
-    207
-    240
-    269
-    260
-    263
-    """
-)
+test_data = """\
+199
+200
+208
+210
+200
+207
+240
+269
+260
+263
+"""
 
 
 def test_part1() -> None:

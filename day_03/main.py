@@ -211,7 +211,7 @@ def test_part2() -> None:
 
 
 def main() -> None:
-    with open(os.path.join(os.path.dirname(__file__), "input.txt")) as file:
+    with open(os.path.join(os.path.dirname(__file__), "input")) as file:
         data = file.read()
 
     print(part1(data))

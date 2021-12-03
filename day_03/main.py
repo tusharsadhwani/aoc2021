@@ -70,7 +70,7 @@ def part1(data: str) -> int:
 
         # The question doesn't clarify what to do when count == n/2.
         # But, both > and >= give the same answer here, so it's fine.
-        if count > len(nums) // 2:
+        if count > len(nums) / 2:
             gamma += 1
         else:
             epsilon += 1

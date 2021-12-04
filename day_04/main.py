@@ -169,19 +169,16 @@ def part2(data: str) -> int:
                             all(cell.marked for cell in column)
                             for column in zip(*board)
                         ):
-                            # Added: when 3rd board finally wins
-                            if sum(boards_won) == 2:
-                                last_board_index = boards_won.index(False)
-                                last_winning_board = boards[last_board_index]
+                            # Added: when last board finally wins
+                            boards_won[board_index] = True
+                            if all(boards_won):
                                 unmarked_nums = [
                                     cell.value
-                                    for row in last_winning_board
+                                    for row in board
                                     for cell in row
                                     if not cell.marked
                                 ]
                                 return cell.value * sum(unmarked_nums)
-
-                            boards_won[board_index] = True
 
     return -1
 

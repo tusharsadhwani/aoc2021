@@ -76,6 +76,24 @@ board won, 24, to get the final score, 188 * 24 = 4512.
 
 To guarantee victory against the giant squid, figure out which board
 will win first. What will your final score be if you choose that board?
+
+--- Part Two ---
+On the other hand, it might be wise to try a different strategy: let the
+giant squid win.
+
+You aren't sure how many bingo boards a giant squid could play at once,
+so rather than waste time counting its arms, the safe thing to do is to
+figure out which board will win last and choose that one. That way, no
+matter which boards it picks, it will win for sure.
+
+In the above example, the second board is the last to win, which happens
+after 13 is eventually called and its middle column is completely
+marked. If you were to keep playing until this point, the second board
+would have a sum of unmarked numbers equal to 148 for a final score of
+148 * 13 = 1924.
+
+Figure out which board will win last. Once it wins, what would its final
+score be?
 """
 import os
 from dataclasses import dataclass
@@ -104,21 +122,18 @@ def parse_data(data: str) -> tuple[list[int], list[Board]]:
 
 def part1(data: str) -> int:
     nums, boards = parse_data(data)
-    row_counts = [[0 for _ in board] for board in boards]
-    col_counts = [[0 for _ in board] for board in boards]
     for num in nums:
-        for board_index, board in enumerate(boards):
-            for row_index, row in enumerate(board):
-                for col_index, cell in enumerate(row):
-                    if cell.value == num:
+        for board in boards:
+            for row in board:
+                for cell in row:
+                    if not cell.marked and cell.value == num:
                         cell.marked = True
-                        row_counts[board_index][row_index] += 1
-                        col_counts[board_index][col_index] += 1
 
-                        size = len(boards[0])
-                        if (
-                            row_counts[board_index][row_index] == size
-                            or col_counts[board_index][col_index] == size
+                        if any(
+                            all(cell.marked for cell in row) for row in board
+                        ) or any(
+                            all(cell.marked for cell in column)
+                            for column in zip(*board)
                         ):
                             unmarked_nums = [
                                 cell.value
@@ -131,8 +146,44 @@ def part1(data: str) -> int:
     return -1
 
 
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    nums, boards = parse_data(data)
+
+    # Thing added over part1
+    boards_won = [False for _ in boards]
+
+    for num in nums:
+        for board_index, board in enumerate(boards):
+            # Early exit: skip already won boards
+            if boards_won[board_index]:
+                continue
+
+            for row in board:
+                for cell in row:
+                    if not cell.marked and cell.value == num:
+                        cell.marked = True
+
+                        if any(
+                            all(cell.marked for cell in row) for row in board
+                        ) or any(
+                            all(cell.marked for cell in column)
+                            for column in zip(*board)
+                        ):
+                            # Added: when 3rd board finally wins
+                            if sum(boards_won) == 2:
+                                last_board_index = boards_won.index(False)
+                                last_winning_board = boards[last_board_index]
+                                unmarked_nums = [
+                                    cell.value
+                                    for row in last_winning_board
+                                    for cell in row
+                                    if not cell.marked
+                                ]
+                                return cell.value * sum(unmarked_nums)
+
+                            boards_won[board_index] = True
+
+    return -1
 
 
 test_data = """\
@@ -163,7 +214,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 1924
 
 
 def main() -> None:

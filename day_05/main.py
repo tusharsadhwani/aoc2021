@@ -56,6 +56,38 @@ anywhere in the diagram with a 2 or larger - a total of 5 points.
 
 Consider only horizontal and vertical lines. At how many points do at
 least two lines overlap?
+
+--- Part Two ---
+Unfortunately, considering only horizontal and vertical lines doesn't
+give you the full picture; you need to also consider diagonal lines.
+
+Because of the limits of the hydrothermal vent mapping system, the lines
+in your list will only ever be horizontal, vertical, or a diagonal line
+at exactly 45 degrees. In other words:
+
+- An entry like 1,1 -> 3,3 covers points 1,1, 2,2, and 3,3.
+- An entry like 9,7 -> 7,9 covers points 9,7, 8,8, and 7,9.
+
+Considering all lines from the above example would now produce the
+following diagram:
+
+1.1....11.
+.111...2..
+..2.1.111.
+...1.2.2..
+.112313211
+...1.2....
+..1...1...
+.1.....1..
+1.......1.
+222111....
+
+You still need to determine the number of points where at least two
+lines overlap. In the above example, this is still anywhere in the
+diagram with a 2 or larger - now a total of 12 points.
+
+Consider all of the lines. At how many points do at least two lines
+overlap?
 """
 import os
 from collections import defaultdict
@@ -64,14 +96,33 @@ from typing import DefaultDict
 Points = DefaultDict[tuple[int, int], int]
 
 
-def parse_data(data: str) -> Points:
+def parse_data(data: str, diagonals: bool = False) -> Points:
     points: Points = defaultdict(int)
     for line in data.splitlines():
         x1, y1, x2, y2 = (
             int(num) for coords in line.split("->") for num in coords.split(",")
         )
         if x1 != x2 and y1 != y2:
-            continue
+            if not diagonals:
+                continue
+
+            # Get the smaller values into x1.
+            # If we swap, set y_start to y2, otherwise y1.
+            # We will get the y values using math.
+            if x1 <= x2:
+                y_start = y1
+            else:
+                y_start = y2
+                x1, x2 = x2, x1
+
+            # Sanity check:
+            if abs(y2 - y1) != x2 - x1:
+                raise AssertionError("Something's wrong...")
+
+            for x in range(x1, x2 + 1):
+                # The aforementioned math.
+                y = y_start + (x - x1)
+                points[x, y] += 1
 
         if x1 == x2:
             # min and max, to get the smaller number into y1
@@ -93,8 +144,9 @@ def part1(data: str) -> int:
     return len([count for count in points.values() if count >= 2])
 
 
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    points = parse_data(data, diagonals=True)
+    return len([count for count in points.values() if count >= 2])
 
 
 test_data = """\
@@ -116,7 +168,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 12
 
 
 def main() -> None:

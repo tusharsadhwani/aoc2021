@@ -110,29 +110,25 @@ def diagonal_range(x1: int, y1: int, x2: int, y2: int) -> list[tuple[int, int]]:
     return [(x, y) for x, y in zip(range_included(x1, x2), range_included(y1, y2))]
 
 
-def parse_data(data: str, diagonals: bool = False) -> Points:
+def parse_data(data: str, consider_diagonals: bool = False) -> Points:
     points: Points = defaultdict(int)
     for line in data.splitlines():
         x1, y1, x2, y2 = (
             int(num) for coords in line.split("->") for num in coords.split(",")
         )
         if x1 != x2 and y1 != y2:
-            if not diagonals:
+            if not consider_diagonals:
                 continue
 
             for x, y in diagonal_range(x1, y1, x2, y2):
                 points[x, y] += 1
 
         if x1 == x2:
-            # min and max, to get the smaller number into y1
-            y1, y2 = min(y1, y2), max(y1, y2)
-            for y in range(y1, y2 + 1):
+            for y in range_included(y1, y2):
                 points[x1, y] += 1
 
         elif y1 == y2:
-            # min and max, to get the smaller number into x1
-            x1, x2 = min(x1, x2), max(x1, x2)
-            for x in range(x1, x2 + 1):
+            for x in range_included(x1, x2):
                 points[x, y1] += 1
 
     return points
@@ -144,7 +140,7 @@ def part1(data: str) -> int:
 
 
 def part2(data: str) -> int:
-    points = parse_data(data, diagonals=True)
+    points = parse_data(data, consider_diagonals=True)
     return len([count for count in points.values() if count >= 2])
 
 

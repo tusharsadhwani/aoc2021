@@ -89,11 +89,25 @@ diagram with a 2 or larger - now a total of 12 points.
 Consider all of the lines. At how many points do at least two lines
 overlap?
 """
+import math
 import os
 from collections import defaultdict
-from typing import DefaultDict
+from typing import DefaultDict, Iterable
 
 Points = DefaultDict[tuple[int, int], int]
+
+
+def range_included(a: int, b: int) -> Iterable[int]:
+    """Range with second number included. Also auto detect step (1 or -1)"""
+    if a > b:
+        return range(a, b - 1, -1)
+
+    return range(a, b + 1)
+
+
+def diagonal_range(x1: int, y1: int, x2: int, y2: int) -> list[tuple[int, int]]:
+    """Returns the points between two lines (x1, y1) and (x2, y2)"""
+    return [(x, y) for x, y in zip(range_included(x1, x2), range_included(y1, y2))]
 
 
 def parse_data(data: str, diagonals: bool = False) -> Points:
@@ -106,22 +120,7 @@ def parse_data(data: str, diagonals: bool = False) -> Points:
             if not diagonals:
                 continue
 
-            # Get the smaller values into x1.
-            # If we swap, set y_start to y2, otherwise y1.
-            # We will get the y values using math.
-            if x1 <= x2:
-                y_start = y1
-            else:
-                y_start = y2
-                x1, x2 = x2, x1
-
-            # Sanity check:
-            if abs(y2 - y1) != x2 - x1:
-                raise AssertionError("Something's wrong...")
-
-            for x in range(x1, x2 + 1):
-                # The aforementioned math.
-                y = y_start + (x - x1)
+            for x, y in diagonal_range(x1, y1, x2, y2):
                 points[x, y] += 1
 
         if x1 == x2:

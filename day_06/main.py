@@ -88,9 +88,6 @@ How many lanternfish would there be after 256 days?
 """
 import os
 
-[0, 1, 1, 2, 1, 0, 0, 0, 0]
-[1, 2, 1, 0, 0, 0, 1, 0, 1]
-
 
 def solve(data: str, days: int = 80) -> int:
     ages = (int(num) for num in data.split(","))

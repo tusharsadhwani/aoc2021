@@ -83,20 +83,28 @@ must they spend to align to that position?
 """
 import os
 import sys
+from typing import Callable
 
 
-def part1(data: str) -> int:
+def solve(data: str, cost_function: Callable[[int, int], int]) -> int:
     nums = [int(num) for num in data.split(",")]
 
     smallest_fuel_cost = sys.maxsize
     for median in range(min(nums), max(nums) + 1):
         fuel_cost = 0
         for num in nums:
-            fuel_cost += abs(num - median)
+            fuel_cost += cost_function(median, num)
 
         smallest_fuel_cost = min(smallest_fuel_cost, fuel_cost)
 
     return smallest_fuel_cost
+
+
+def part1(data: str) -> int:
+    return solve(
+        data,
+        cost_function=lambda median, num: abs(num - median),
+    )
 
 
 def triangular_number(num: int) -> int:
@@ -104,18 +112,10 @@ def triangular_number(num: int) -> int:
 
 
 def part2(data: str) -> int:
-    nums = [int(num) for num in data.split(",")]
-
-    smallest_fuel_cost = sys.maxsize
-    for median in range(min(nums), max(nums) + 1):
-        fuel_cost = 0
-        for num in nums:
-            distance = abs(num - median)
-            fuel_cost += triangular_number(distance)
-
-        smallest_fuel_cost = min(smallest_fuel_cost, fuel_cost)
-
-    return smallest_fuel_cost
+    return solve(
+        data,
+        lambda median, num: triangular_number(abs(num - median)),
+    )
 
 
 test_data = """\

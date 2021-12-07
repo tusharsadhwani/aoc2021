@@ -12,3 +12,4 @@ Find the answers to part1 and part2 of any day of the problem by:
 ## Testing
 
 Run `pytest day_XX/main.py` to test that file.
+Run `./test_all.sh` to test and type check all files.

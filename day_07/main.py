@@ -63,16 +63,16 @@ As each crab moves, moving further becomes more expensive. This changes
 the best horizontal position to align them all on; in the example above,
 this becomes 5:
 
-Move from 16 to 5: 66 fuel
-Move from 1 to 5: 10 fuel
-Move from 2 to 5: 6 fuel
-Move from 0 to 5: 15 fuel
-Move from 4 to 5: 1 fuel
-Move from 2 to 5: 6 fuel
-Move from 7 to 5: 3 fuel
-Move from 1 to 5: 10 fuel
-Move from 2 to 5: 6 fuel
-Move from 14 to 5: 45 fuel
+- Move from 16 to 5: 66 fuel
+- Move from 1 to 5: 10 fuel
+- Move from 2 to 5: 6 fuel
+- Move from 0 to 5: 15 fuel
+- Move from 4 to 5: 1 fuel
+- Move from 2 to 5: 6 fuel
+- Move from 7 to 5: 3 fuel
+- Move from 1 to 5: 10 fuel
+- Move from 2 to 5: 6 fuel
+- Move from 14 to 5: 45 fuel
 
 This costs a total of 168 fuel. This is the new cheapest possible
 outcome; the old alignment position (2) now costs 206 fuel instead.

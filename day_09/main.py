@@ -109,10 +109,7 @@ def is_low_point(grid: list[list[int]], x: int, y: int) -> bool:
     if y + 1 < len(grid[0]):
         neighbours.append(grid[x][y + 1])
 
-    if all(neighbour > value for neighbour in neighbours):
-        return True
-
-    return False
+    return all(neighbour > value for neighbour in neighbours)
 
 
 def part1(data: str) -> int:

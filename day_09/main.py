@@ -37,6 +37,56 @@ of the risk levels of all low points in the heightmap is therefore 15.
 
 Find all of the low points on your heightmap. What is the sum of the
 risk levels of all low points on your heightmap?
+
+--- Part Two ---
+Next, you need to find the largest basins so you know what areas are
+most important to avoid.
+
+A basin is all locations that eventually flow downward to a single low
+point. Therefore, every low point has a basin, although some basins are
+very small. Locations of height 9 do not count as being in any basin,
+and all other locations will always be part of exactly one basin.
+
+The size of a basin is the number of locations within the basin,
+including the low point. The example above has four basins.
+
+The top-left basin, size 3:
+
+2199943210    21........
+3987894921    3.........
+9856789892 => ..........
+8767896789    ..........
+9899965678    ..........
+
+The top-right basin, size 9:
+
+2199943210    .....43210
+3987894921    ......4.21
+9856789892 => .........2
+8767896789    ..........
+9899965678    ..........
+
+The middle basin, size 14:
+
+2199943210    ..........
+3987894921    ..878.....
+9856789892 => .85678....
+8767896789    87678.....
+9899965678    .8........
+
+The bottom-right basin, size 9:
+
+2199943210    ..........
+3987894921    ..........
+9856789892 => .......8..
+8767896789    ......678.
+9899965678    .....65678
+
+Find the three largest basins and multiply their sizes together. In the
+above example, this is 9 * 14 * 9 = 1134.
+
+What do you get if you multiply together the sizes of the three largest
+basins?
 """
 import os
 
@@ -78,7 +128,7 @@ def part1(data: str) -> int:
     return risk_level_sum
 
 
-def part2(data: str) -> None:
+def part2(data: str) -> int:
     ...
 
 
@@ -96,7 +146,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 
 
 
 def main() -> None:

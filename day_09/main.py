@@ -125,8 +125,60 @@ def part1(data: str) -> int:
     return risk_level_sum
 
 
+def _flood(
+    grid: list[list[int]],
+    visited: list[list[bool]],
+    x: int,
+    y: int,
+) -> None:
+    if visited[x][y]:
+        return
+
+    visited[x][y] = True
+
+    for offset_x, offset_y in (-1, 0), (0, -1), (0, 1), (1, 0):
+        new_x = x + offset_x
+        new_y = y + offset_y
+
+        if new_x < 0 or new_x >= len(grid):
+            continue
+        if new_y < 0 or new_y >= len(grid[0]):
+            continue
+
+        neighbour = grid[new_x][new_y]
+        if neighbour != 9:
+            _flood(grid, visited, new_x, new_y)
+
+
+def flood(grid: list[list[int]], x: int, y: int) -> int:
+    """
+    Floods the basin, recursively all numbers inside it.
+    Returns the number of flooded numbers.
+    """
+    visited = [[False for _ in row] for row in grid]
+    _flood(grid, visited, x, y)
+
+    def flatten(list: list[list[bool]]) -> list[bool]:
+        """Flatten 2d list"""
+        return [item for sublist in list for item in sublist]
+
+    basin_size = flatten(visited).count(True)
+    return basin_size
+
+
 def part2(data: str) -> int:
-    ...
+    grid = parse_data(data)
+
+    basin_sizes: list[int] = []
+    for x, row in enumerate(grid):
+        for y, cell in enumerate(row):
+            if is_low_point(grid, x, y):
+                basin_size = flood(grid, x, y)
+                basin_sizes.append(basin_size)
+
+    basin_sizes.sort(reverse=True)
+    first, second, third = basin_sizes[:3]
+    return first * second * third
 
 
 test_data = """\
@@ -143,7 +195,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == 
+    assert part2(test_data) == 1134
 
 
 def main() -> None:

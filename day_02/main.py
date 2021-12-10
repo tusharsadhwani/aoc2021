@@ -80,7 +80,7 @@ final depth?
 import os
 
 
-def part1(data) -> int:
+def part1(data: str) -> int:
     depth = position = 0
     for instruction in data.splitlines():
         direction, distance_str = instruction.split()
@@ -96,7 +96,7 @@ def part1(data) -> int:
     return depth * position
 
 
-def part2(data) -> int:
+def part2(data: str) -> int:
     depth = position = aim = 0
     for instruction in data.splitlines():
         direction, distance_str = instruction.split()

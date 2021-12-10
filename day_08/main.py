@@ -110,8 +110,70 @@ those digits. Counting only digits in the output values (the part after
 that use a unique number of segments.
 
 In the output values, how many times do digits 1, 4, 7, or 8 appear?
+
+--- Part Two ---
+Through a little deduction, you should now be able to determine the
+remaining digits. Consider again the first example above:
+
+acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab |
+cdfeb fcadb cdfeb cdbaf
+
+After some careful analysis, the mapping between signal wires and
+segments only make sense in the following configuration:
+
+ dddd
+e    a
+e    a
+ ffff
+g    b
+g    b
+ cccc
+
+So, the unique signal patterns would correspond to the following digits:
+
+- acedgfb: 8
+- cdfbe: 5
+- gcdfa: 2
+- fbcad: 3
+- dab: 7
+- cefabd: 9
+- cdfgeb: 6
+- eafb: 4
+- cagedb: 0
+- ab: 1
+
+Then, the four digits of the output value can be decoded:
+
+- cdfeb: 5
+- fcadb: 3
+- cdfeb: 5
+- cdbaf: 3
+
+Therefore, the output value for this entry is 5353.
+
+Following this same process for each entry in the second, larger example
+above, the output value of each entry can be determined:
+
+- fdgacbe cefdb cefbgd gcbe: 8394
+- fcgedb cgb dgebacf gc: 9781
+- cg cg fdcagb cbg: 1197
+- efabcd cedba gadfec cb: 9361
+- gecf egdcabf bgf bfgea: 4873
+- gebdcfa ecba ca fadegcb: 8418
+- cefg dcbef fcge gbcadfe: 4548
+- ed bcgafe cdgba cbgef: 1625
+- gbdfcae bgc cg cgb: 8717
+- fgae cfgab fg bagce: 4315
+
+Adding all of the output values in this larger example produces 61229.
+
+For each entry, determine all of the wire/segment connections and decode
+the four-digit output values. What do you get if you add up all of the
+output values?
 """
 import os
+from itertools import permutations
+from typing import Sequence
 
 Digit = frozenset[str]
 
@@ -139,8 +201,72 @@ def part1(data: str) -> int:
     return count_1478
 
 
-def part2(data: str) -> None:
-    ...
+def get_set_from_word(permutation: Sequence[int], digit: Digit) -> set[int]:
+    """
+    Returns a digit set from a given digit word,
+    based on the current permutation.
+
+    i.e. if:
+    permutation = [6, 5, 4, 3, 2, 1, 0]
+    digit = 'abcd'
+
+    then output = {6, 5, 4, 3}
+    """
+    return {permutation[ord(char) - ord("a")] for char in digit}
+
+
+def part2(data: str) -> int:
+    """
+    Assuming the seven segment display in this order:
+
+         0000
+        1    2
+        1    2
+         3333
+        4    5
+        4    5
+         6666
+
+    The digits are defined by the activated segments.
+
+    The idea is to generate all possible permutations of a to g
+    mappings between these 1-7 values, and then vlalidate the words
+    against them until we find one in which none of the given words
+    generate an invalid number.
+    """
+    digit_sets = (
+        {0, 1, 2, 4, 5, 6},  # Zero
+        {2, 5},  # One
+        {0, 2, 3, 4, 6},  # Two
+        {0, 2, 3, 5, 6},  # Three
+        {1, 2, 3, 5},  # Four
+        {0, 1, 3, 5, 6},  # Five
+        {0, 1, 3, 4, 5, 6},  # Six
+        {0, 2, 5},  # Seven
+        {0, 1, 2, 3, 4, 5, 6},  # Eight
+        {0, 1, 2, 3, 5, 6},  # Nine
+    )
+
+    total = 0
+    all_digits, input_digits = parse_input(data)
+    for all_digit_row, input_row in zip(all_digits, input_digits):
+        for permutation in permutations(range(7), 7):
+            for digit_word in all_digit_row:
+                digit_set = get_set_from_word(permutation, digit_word)
+                if digit_set not in digit_sets:
+                    # Invalid digit found. On to the next permutation.
+                    break
+            else:
+                number = 0
+                for digit_word in input_row:
+                    digit_set = get_set_from_word(permutation, digit_word)
+                    digit = digit_sets.index(digit_set)
+                    number = number * 10 + digit
+
+                total += number
+                break  # Found the number. Onto the next row.
+
+    return total
 
 
 test_data = """\
@@ -162,7 +288,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 61229
 
 
 def main() -> None:

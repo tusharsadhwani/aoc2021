@@ -77,14 +77,75 @@ syntax error score for this file is 6+57+1197+25137 = 26397 points!
 Find the first illegal character in each corrupted line of the
 navigation subsystem. What is the total syntax error score for those
 errors?
+
+--- Part Two ---
+Now, discard the corrupted lines. The remaining lines are incomplete.
+
+Incomplete lines don't have any incorrect characters - instead, they're
+missing some closing characters at the end of the line. To repair the
+navigation subsystem, you just need to figure out the sequence of
+closing characters that complete all open chunks in the line.
+
+You can only use closing characters (), ], }, or >), and you must add
+them in the correct order so that only legal pairs are formed and all
+chunks end up closed.
+
+In the example above, there are five incomplete lines:
+
+- [({(<(())[]>[[{[]{<()<>> - Complete by adding }}]])})].
+- [(()[<>])]({[<{<<[]>>( - Complete by adding )}>]}).
+- (((({<>}<{<{<>}{[]{[]{} - Complete by adding }}>}>)))).
+- {<[[]]>}<{[{[{[]{()[[[] - Complete by adding ]]}}]}]}>.
+- <{([{{}}[<[[[<>{}]]]>[]] - Complete by adding ])}>.
+
+Did you know that autocomplete tools also have contests? It's true! The
+score is determined by considering the completion string
+character-by-character. Start with a total score of 0. Then, for each
+character, multiply the total score by 5 and then increase the total
+score by the point value given for the character in the following table:
+
+- ): 1 point.
+- ]: 2 points.
+- }: 3 points.
+- >: 4 points.
+
+So, the last completion string above - ])}> - would be scored as
+follows:
+
+- Start with a total score of 0.
+- Multiply the total score by 5 to get 0, then add the value of ] (2) to
+  get a new total score of 2.
+- Multiply the total score by 5 to get 10, then add the value of ) (1)
+  to get a new total score of 11.
+- Multiply the total score by 5 to get 55, then add the value of } (3)
+  to get a new total score of 58.
+- Multiply the total score by 5 to get 290, then add the value of > (4)
+  to get a new total score of 294.
+
+The five lines' completion strings have total scores as follows:
+
+- }}]])})] - 288957 total points.
+- )}>]}) - 5566 total points.
+- }}>}>)))) - 1480781 total points.
+- ]]}}]}]}> - 995444 total points.
+- ])}> - 294 total points.
+
+Autocomplete tools are an odd bunch: the winner is found by sorting all
+of the scores and then taking the middle score. (There will always be an
+odd number of scores to consider.) In this example, the middle score is
+288957 because there are the same number of scores smaller and larger
+than it.
+
+Find the completion string for each incomplete line, score the
+completion strings, and sort the scores. What is the middle score?
 """
 import os
 
 
-def get_illegal_index(line: str) -> int:
+def parse_brackets(line: str) -> tuple[int, str]:
     """
-    Returns the index at which brackets don't align anymore.
-    If all brackets match, return -1.
+    Returns the index at which closing brackets don't align anymore,
+    or if all closing ones do match, the string needed to complete it.
     """
     stack: list[str] = []
     opening_map = {
@@ -100,11 +161,18 @@ def get_illegal_index(line: str) -> int:
 
         opening_bracket = opening_map[bracket]
         if stack.pop() != opening_bracket:
-            return index
+            return index, ""
 
-    # TODO: what if opening brackets left in the stack.
-    # Will probably have to deal with in part 2.
-    return -1
+    # Now, there's stuff left on the stack. Which means, we need more
+    # closing brackets here, for part 2. Disregard the integer.
+    closing_map = {value: key for key, value in opening_map.items()}
+
+    autocomplete = ""
+    while len(stack) > 0:
+        bracket = stack.pop()
+        autocomplete += closing_map[bracket]
+
+    return -1, autocomplete
 
 
 def part1(data: str) -> int:
@@ -117,7 +185,7 @@ def part1(data: str) -> int:
 
     total_score = 0
     for line in data.splitlines():
-        index = get_illegal_index(line)
+        index, _ = parse_brackets(line)
         if index == -1:
             continue
 
@@ -127,8 +195,28 @@ def part1(data: str) -> int:
     return total_score
 
 
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    autocomplete_scores = {
+        ")": 1,
+        "]": 2,
+        "}": 3,
+        ">": 4,
+    }
+    scores: list[int] = []
+    for line in data.splitlines():
+        line_score = 0
+        _, closing_brackets = parse_brackets(line)
+        if closing_brackets == "":
+            # Nothing to autocomplete.
+            continue
+
+        for bracket in closing_brackets:
+            line_score = line_score * 5 + autocomplete_scores[bracket]
+
+        scores.append(line_score)
+
+    scores.sort()
+    return scores[len(scores) // 2]
 
 
 test_data = """\
@@ -150,7 +238,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 288957
 
 
 def main() -> None:

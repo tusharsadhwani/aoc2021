@@ -317,6 +317,54 @@ After 100 steps, there have been a total of 1656 flashes.
 
 Given the starting energy levels of the dumbo octopuses in your cavern,
 simulate 100 steps. How many total flashes are there after 100 steps?
+
+--- Part Two ---
+It seems like the individual flashes aren't bright enough to navigate.
+However, you might have a better option: the flashes seem to be
+synchronizing!
+
+In the example above, the first time all octopuses flash simultaneously
+is step 195:
+
+After step 193:
+5877777777
+8877777777
+7777777777
+7777777777
+7777777777
+7777777777
+7777777777
+7777777777
+7777777777
+7777777777
+
+After step 194:
+6988888888
+9988888888
+8888888888
+8888888888
+8888888888
+8888888888
+8888888888
+8888888888
+8888888888
+8888888888
+
+After step 195:
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+
+If you can calculate the exact moments when the octopuses will all flash
+simultaneously, you should be able to navigate through the cavern. What
+is the first step during which all octopuses flash?
 """
 import os
 
@@ -410,8 +458,16 @@ def part1(data: str) -> int:
     return total_flashes
 
 
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    grid = [[int(digit) for digit in row] for row in data.splitlines()]
+
+    rows, cols = len(grid), len(grid[0])
+    step_count = 0
+    while True:
+        step_count += 1
+        flash_count = iterate(grid)
+        if flash_count == rows * cols:
+            return step_count
 
 
 test_data = """\
@@ -499,7 +555,7 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 195
 
 
 def main() -> None:

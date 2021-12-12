@@ -118,6 +118,60 @@ start-RW
 
 How many paths through this cave system are there that visit small caves
 at most once?
+
+--- Part Two ---
+After reviewing the available paths, you realize you might have time to
+visit a single small cave twice. Specifically, big caves can be visited
+any number of times, a single small cave can be visited at most twice,
+and the remaining small caves can be visited at most once. However, the
+caves named start and end can only be visited exactly once each: once
+you leave the start cave, you may not return to it, and once you reach
+the end cave, the path must end immediately.
+
+Now, the 36 possible paths through the first example above are:
+
+start,A,b,A,b,A,c,A,end
+start,A,b,A,b,A,end
+start,A,b,A,b,end
+start,A,b,A,c,A,b,A,end
+start,A,b,A,c,A,b,end
+start,A,b,A,c,A,c,A,end
+start,A,b,A,c,A,end
+start,A,b,A,end
+start,A,b,d,b,A,c,A,end
+start,A,b,d,b,A,end
+start,A,b,d,b,end
+start,A,b,end
+start,A,c,A,b,A,b,A,end
+start,A,c,A,b,A,b,end
+start,A,c,A,b,A,c,A,end
+start,A,c,A,b,A,end
+start,A,c,A,b,d,b,A,end
+start,A,c,A,b,d,b,end
+start,A,c,A,b,end
+start,A,c,A,c,A,b,A,end
+start,A,c,A,c,A,b,end
+start,A,c,A,c,A,end
+start,A,c,A,end
+start,A,end
+start,b,A,b,A,c,A,end
+start,b,A,b,A,end
+start,b,A,b,end
+start,b,A,c,A,b,A,end
+start,b,A,c,A,b,end
+start,b,A,c,A,c,A,end
+start,b,A,c,A,end
+start,b,A,end
+start,b,d,b,A,c,A,end
+start,b,d,b,A,end
+start,b,d,b,end
+start,b,end
+
+The slightly larger example above now has 103 paths through it, and the
+even larger example now has 3509 paths through it.
+
+Given these new rules, how many paths through this cave system are
+there?
 """
 import os
 from collections import defaultdict
@@ -140,18 +194,9 @@ def parse_data(data: str) -> Graph:
     return graph
 
 
-def get_cave_visit_count(
-    cave: str,
-    small_cave_visits: num,
-    big_cave_visits: num,
-) -> num:
-    """Returns how many times you can visit a cave"""
-    return big_cave_visits if cave.isupper() else small_cave_visits
-
-
 def _depth_first_search(
     graph: Graph,
-    paths: list[Path],
+    paths: set[Path],
     point: str,
     cave_visits_left: dict[str, num],
     current_path: Optional[Path] = None,
@@ -165,7 +210,7 @@ def _depth_first_search(
 
         if cave == "end":
             final_path = (*current_path, "end")
-            paths.append(final_path)
+            paths.add(final_path)
             continue
 
         if cave_visits_left[cave] >= 1:
@@ -182,19 +227,18 @@ def _depth_first_search(
             )
 
 
-def find_paths(graph: Graph, small_cave_visits: num, big_cave_visits: num) -> int:
+def find_paths(
+    graph: Graph,
+    special_cave: Optional[str] = None,
+) -> set[Path]:
     """Find all paths from `start` to `end` within given constraints."""
-    paths: list[Path] = []
+    paths: set[Path] = set()
     starting_point = "start"
 
     cave_visits_left: dict[str, num] = {}
     cave_visits_left.update(
         {
-            cave: get_cave_visit_count(
-                cave,
-                small_cave_visits,
-                big_cave_visits,
-            )
+            cave: float("inf") if cave.isupper() else 2 if cave == special_cave else 1
             for cave in graph
         }
     )
@@ -205,21 +249,23 @@ def find_paths(graph: Graph, small_cave_visits: num, big_cave_visits: num) -> in
         starting_point,
         cave_visits_left,
     )
-    return len(paths)
+    return paths
 
 
 def part1(data: str) -> int:
     graph = parse_data(data)
-
-    small_cave_visits = 1
-    big_cave_visits = float("inf")
-
-    path_count = find_paths(graph, small_cave_visits, big_cave_visits)
-    return path_count
+    paths = find_paths(graph)
+    return len(paths)
 
 
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    graph = parse_data(data)
+
+    paths: set[Path] = set()
+    for cave in graph:
+        paths.update(find_paths(graph, special_cave=cave))
+
+    return len(paths)
 
 
 test_data = """\
@@ -243,7 +289,7 @@ pj-fs
 start-RW
 """
 
-part1_simple_1 = """\
+test_simple_1 = """\
 start-A
 start-b
 A-c
@@ -253,7 +299,7 @@ A-end
 b-end
 """
 
-part1_simple_2 = """\
+test_simple_2 = """\
 dc-end
 HN-start
 start-kj
@@ -268,13 +314,15 @@ kj-dc
 
 
 def test_part1() -> None:
-    assert part1(part1_simple_1) == 10
-    assert part1(part1_simple_2) == 19
+    assert part1(test_simple_1) == 10
+    assert part1(test_simple_2) == 19
     assert part1(test_data) == 226
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_simple_1) == 36
+    assert part2(test_simple_2) == 103
+    assert part2(test_data) == 3509
 
 
 def main() -> None:

@@ -138,8 +138,19 @@ completed count as a single dot.
 
 How many dots are visible after completing just the first fold
 instruction on your transparent paper?
+
+--- Part Two ---
+Finish folding the transparent paper according to the instructions. The
+manual says the code is always eight capital letters.
+
+What code do you use to activate the infrared thermal imaging camera
+system?
 """
+import io
 import os
+from contextlib import redirect_stdout
+from textwrap import dedent
+
 
 Dot = tuple[int, int]
 Fold = tuple[str, int]
@@ -192,8 +203,28 @@ def part1(data: str) -> int:
     return len(overlapped_dots)
 
 
+def represent_dots(dots: set[Dot]) -> None:
+    max_x = max_y = 0
+    for x, y in dots:
+        max_x = max(max_x, x)
+        max_y = max(max_y, y)
+
+    dot_matrix = [[False for _ in range(max_x + 1)] for _ in range(max_y + 1)]
+    for x, y in dots:
+        dot_matrix[y][x] = True
+
+    for row in dot_matrix:
+        for dot in row:
+            print("#" if dot else ".", end="")
+        print()
+
+
 def part2(data: str) -> None:
-    ...
+    dots, folds = parse_data(data)
+    for fold_direction, fold_position in folds:
+        dots = fold(dots, fold_direction, fold_position)
+
+    represent_dots(dots)
 
 
 test_data = """\
@@ -226,7 +257,20 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        part2(test_data)
+
+    expected = dedent(
+        """\
+        #####
+        #...#
+        #...#
+        #...#
+        #####
+        """
+    )
+    assert stdout.getvalue() == expected
 
 
 def main() -> None:
@@ -234,7 +278,7 @@ def main() -> None:
         data = file.read()
 
     print(part1(data))
-    print(part2(data))
+    part2(data)
 
 
 if __name__ == "__main__":

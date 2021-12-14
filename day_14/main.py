@@ -120,7 +120,7 @@ def parse_data(data: str) -> tuple[str, InsertionRules]:
     return template, rules
 
 
-def part1(data: str) -> str:
+def part1(data: str) -> int:
     template, rules = parse_data(data)
     string = iterate_many(template, rules, count=10)
 

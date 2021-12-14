@@ -118,15 +118,13 @@ def iterate(
     for pair, count in pair_counts.items():
         if pair in rules:
             center_char = rules[pair]
+            char_counts[center_char] += count
+
             first, second = iter(pair)
             new_pair_1 = first + center_char
             new_pair_2 = center_char + second
-            if new_pair_1 in rules:  # TODO: try to remove
-                new_pair_counts[new_pair_1] += count
-            if new_pair_2 in rules:
-                new_pair_counts[new_pair_2] += count
-
-            char_counts[center_char] += count
+            new_pair_counts[new_pair_1] += count
+            new_pair_counts[new_pair_2] += count
 
     return new_pair_counts, char_counts
 

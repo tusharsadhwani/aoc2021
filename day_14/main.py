@@ -76,40 +76,74 @@ Apply 10 steps of pair insertion to the polymer template and find the
 most and least common elements in the result. What do you get if you
 take the quantity of the most common element and subtract the quantity
 of the least common element?
+
+--- Part Two ---
+The resulting polymer isn't nearly strong enough to reinforce the
+submarine. You'll need to run more steps of the pair insertion process;
+a total of 40 steps should do it.
+
+In the above example, the most common element is B (occurring
+2192039569602 times) and the least common element is H (occurring
+3849876073 times); subtracting these produces 2188189693529.
+
+Apply 40 steps of pair insertion to the polymer template and find the
+most and least common elements in the result. What do you get if you
+take the quantity of the most common element and subtract the quantity
+of the least common element?
 """
 import os
-from typing import Counter, Generator
+from collections import defaultdict
+from typing import Counter, DefaultDict
 
 InsertionRules = dict[str, str]
+PairCounts = DefaultDict[str, int]
+CharCounts = DefaultDict[str, int]
 
 
-def get_pair_chars(string: str) -> Generator[str, None, None]:
+def get_pair_counts(string: str) -> PairCounts:
+    pair_counts: DefaultDict[str, int] = defaultdict(int)
     for index in range(len(string) - 1):
-        yield string[index : index + 2]
+        pair = string[index : index + 2]
+        pair_counts[pair] += 1
+
+    return pair_counts
 
 
-def iterate(template: str, rules: InsertionRules) -> str:
-    insertions: list[tuple[int, str]] = []
-    for index, pair in enumerate(get_pair_chars(template), start=1):
+def iterate(
+    pair_counts: PairCounts,
+    char_counts: CharCounts,
+    rules: InsertionRules,
+) -> tuple[PairCounts, CharCounts]:
+    new_pair_counts: PairCounts = defaultdict(int)
+    for pair, count in pair_counts.items():
         if pair in rules:
-            insertions.append((index, rules[pair]))
+            center_char = rules[pair]
+            first, second = iter(pair)
+            new_pair_1 = first + center_char
+            new_pair_2 = center_char + second
+            if new_pair_1 in rules:  # TODO: try to remove
+                new_pair_counts[new_pair_1] += count
+            if new_pair_2 in rules:
+                new_pair_counts[new_pair_2] += count
 
-    chars = list(template)
-    insertions.sort(reverse=True)
-    for index, char in insertions:
-        chars.insert(index, char)
+            char_counts[center_char] += count
 
-    return "".join(chars)
+    return new_pair_counts, char_counts
 
 
-def iterate_many(template: str, rules: InsertionRules, count: int) -> str:
+def iterate_many(
+    pair_counts: PairCounts,
+    char_counts: CharCounts,
+    rules: InsertionRules,
+    count: int,
+) -> tuple[PairCounts, CharCounts]:
     for _ in range(count):
-        template = iterate(template, rules)
+        pair_counts, char_counts = iterate(pair_counts, char_counts, rules)
 
-    return template
+    return pair_counts, char_counts
 
 
-def parse_data(data: str) -> tuple[str, InsertionRules]:
+def parse_data(data: str) -> tuple[PairCounts, CharCounts, InsertionRules]:
     template, rule_lines = data.split("\n\n")
 
     rules = {}
@@ -117,19 +151,32 @@ def parse_data(data: str) -> tuple[str, InsertionRules]:
         pair, char = line.split(" -> ")
         rules[pair] = char
 
-    return template, rules
+    pair_counts = get_pair_counts(template)
+    char_counts: CharCounts = defaultdict(int)
+    char_counts.update(Counter(template))
+    return pair_counts, char_counts, rules
 
 
 def part1(data: str) -> int:
-    template, rules = parse_data(data)
-    string = iterate_many(template, rules, count=10)
+    pair_counts, char_counts, rules = parse_data(data)
+    pair_counts, char_counts = iterate_many(
+        pair_counts,
+        char_counts,
+        rules,
+        count=10,
+    )
+    return max(char_counts.values()) - min(char_counts.values())
 
-    (_, max_char_count), *_, (_, min_char_count) = Counter(string).most_common()
-    return max_char_count - min_char_count
 
-
-def part2(data: str) -> None:
-    ...
+def part2(data: str) -> int:
+    pair_counts, char_counts, rules = parse_data(data)
+    pair_counts, char_counts = iterate_many(
+        pair_counts,
+        char_counts,
+        rules,
+        count=40,
+    )
+    return max(char_counts.values()) - min(char_counts.values())
 
 
 test_data = """\
@@ -155,20 +202,39 @@ CN -> C
 
 
 def test_part1() -> None:
-    template, rules = parse_data(test_data)
-    assert iterate_many(template, rules, count=1) == "NCNBCHB"
-    assert iterate_many(template, rules, count=2) == "NBCCNBBBCBHCB"
-    assert iterate_many(template, rules, count=3) == "NBBBCNCCNBBNBNBBCHBHHBCHB"
-    assert (
-        iterate_many(template, rules, count=4)
-        == "NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB"
-    )
+    pair_counts, char_counts, rules = parse_data(test_data)
+    assert pair_counts == {"NN": 1, "NC": 1, "CB": 1}
+    assert char_counts == dict(Counter("NNCB"))
+
+    pair_counts, char_counts = iterate(pair_counts, char_counts, rules)
+    assert pair_counts == {
+        "NC": 1,
+        "CN": 1,
+        "NB": 1,
+        "BC": 1,
+        "CH": 1,
+        "HB": 1,
+    }
+    assert char_counts == dict(Counter("NCNBCHB"))
+
+    pair_counts, char_counts = iterate(pair_counts, char_counts, rules)
+    assert pair_counts == {
+        "NB": 2,
+        "BC": 2,
+        "CC": 1,
+        "CN": 1,
+        "BB": 2,
+        "CB": 2,
+        "BH": 1,
+        "HC": 1,
+    }
+    assert char_counts == dict(Counter("NBCCNBBBCBHCB"))
 
     assert part1(test_data) == 1588
 
 
 def test_part2() -> None:
-    assert part2(test_data) == ...
+    assert part2(test_data) == 2_188_189_693_529
 
 
 def main() -> None:

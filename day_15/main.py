@@ -188,7 +188,7 @@ top left to the bottom right?
 """
 from collections import defaultdict
 import os
-from heapq import heapify, heappop, heappush
+from heapq import heappop, heappush
 from typing import DefaultDict, NamedTuple
 
 

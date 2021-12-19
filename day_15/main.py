@@ -186,35 +186,105 @@ entered, so its risk is not counted).
 Using the full map, what is the lowest total risk of any path from the
 top left to the bottom right?
 """
+from collections import defaultdict
 import os
+from heapq import heapify, heappop, heappush
+from typing import DefaultDict, NamedTuple
+
+
+class Point(NamedTuple):
+    weight: int
+    x: int
+    y: int
+
+
+class Edge(NamedTuple):
+    start: Point
+    end: Point
+
+
+class Graph:
+    def __init__(self) -> None:
+        self.nodes: set[Point] = set()
+        self.edges: DefaultDict[Point, list[Point]] = defaultdict(list)
+        self.distances: dict[tuple[Point, Point], int] = {}
+
+    def add_edge(self, start: Point, end: Point, weight: int) -> None:
+        self.nodes.add(start)
+        self.nodes.add(end)
+
+        self.edges[start].append(end)
+        self.distances[start, end] = weight
 
 
 def parse_data(data: str) -> list[list[int]]:
     return [[int(digit) for digit in row] for row in data.splitlines()]
 
 
-def shortest_path_sum(grid: list[list[int]]) -> int:
-    rows, cols = len(grid), len(grid[0])
+def make_graph(grid: list[list[int]]) -> tuple[Graph, Point, Point]:
+    graph = Graph()
+    start = end = None
 
-    # We use (2, rows) because we don't want to count grid[0][0]
-    # in any calculation.
-    for i in range(2, rows):
-        grid[i][0] += grid[i - 1][0]
+    for i, row in enumerate(grid):
+        for j, digit in enumerate(row):
+            weight = int(digit)
 
-    # Same reasoning as above.
-    for j in range(2, cols):
-        grid[0][j] += grid[0][j - 1]
+            point = Point(weight, i, j)
+            if start is None:
+                start = point
 
-    for i in range(1, rows):
-        for j in range(1, cols):
-            grid[i][j] += min(grid[i - 1][j], grid[i][j - 1])
+            end = point
 
-    return grid[-1][-1]
+            # We'll make edges from i to i-1 and j to j-1.
+            # Since the graph is meant to be undirected,
+            # we'll also make the opposite ones, i.e. i-1 to i
+            # and j-1 to j at the same time.
+            # This means that for i = 0 we don't add i-1, and
+            # for or j = 0, we don't add j-1.
+
+            if i > 0:
+                left_weight = grid[i - 1][j]
+                left_point = Point(left_weight, i - 1, j)
+                graph.add_edge(left_point, point, weight)
+                graph.add_edge(point, left_point, left_weight)
+
+            if j > 0:
+                up_weight = grid[i][j - 1]
+                up_point = Point(up_weight, i, j - 1)
+                graph.add_edge(up_point, point, weight)
+                graph.add_edge(point, up_point, up_weight)
+
+    assert start is not None
+    assert end is not None
+    return graph, start, end
+
+
+def dijkstra(graph: Graph, start: Point, end: Point) -> int:
+    visited = {start: 0}
+    heap = [(0, start)]
+    paths: dict[Point, Point] = {}
+
+    nodes = set(graph.nodes)
+
+    while nodes and heap:
+        weight, min_node = heappop(heap)
+        nodes.remove(min_node)
+
+        neighbours = graph.edges[min_node]
+        for point in neighbours:
+            new_weight = weight + graph.distances[min_node, point]
+            if point not in visited or new_weight < visited[point]:
+                visited[point] = new_weight
+                heappush(heap, (new_weight, point))
+                paths[point] = min_node
+
+    return visited[end]
 
 
 def part1(data: str) -> int:
     grid = parse_data(data)
-    return shortest_path_sum(grid)
+    graph, start, end = make_graph(grid)
+    return dijkstra(graph, start, end)
 
 
 def enlarge_grid(grid: list[list[int]]) -> list[list[int]]:
@@ -234,7 +304,8 @@ def enlarge_grid(grid: list[list[int]]) -> list[list[int]]:
 def part2(data: str) -> int:
     grid = parse_data(data)
     grid = enlarge_grid(grid)
-    return shortest_path_sum(grid)
+    graph, start, end = make_graph(grid)
+    return dijkstra(graph, start, end)
 
 
 test_data = """\

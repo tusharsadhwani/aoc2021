@@ -296,8 +296,6 @@ def test_part1() -> None:
     assert packet.type_id == 6
     assert len(packet.children) == 2
     first, second = packet.children
-    assert isinstance(first, Packet)
-    assert isinstance(second, Packet)
     assert first.value == 10
     assert second.value == 20
 

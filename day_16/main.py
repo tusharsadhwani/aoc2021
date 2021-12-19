@@ -154,8 +154,59 @@ Here are a few more examples of hexadecimal-encoded transmissions:
 
 Decode the structure of your hexadecimal-encoded BITS transmission; what
 do you get if you add up the version numbers in all packets?
+
+--- Part Two ---
+Now that you have the structure of your transmission decoded, you can
+calculate the value of the expression it represents.
+
+Literal values (type ID 4) represent a single number as described above.
+The remaining type IDs are more interesting:
+
+- Packets with type ID 0 are sum packets - their value is the sum of the
+  values of their sub-packets. If they only have a single sub-packet,
+  their value is the value of the sub-packet.
+- Packets with type ID 1 are product packets - their value is the result
+  of multiplying together the values of their sub-packets. If they only
+  have a single sub-packet, their value is the value of the sub-packet.
+- Packets with type ID 2 are minimum packets - their value is the
+  minimum of the values of their sub-packets.
+- Packets with type ID 3 are maximum packets - their value is the
+  maximum of the values of their sub-packets.
+- Packets with type ID 5 are greater than packets - their value is 1 if
+  the value of the first sub-packet is greater than the value of the
+  second sub-packet; otherwise, their value is 0. These packets always
+  have exactly two sub-packets.
+- Packets with type ID 6 are less than packets - their value is 1 if the
+  value of the first sub-packet is less than the value of the second
+  sub-packet; otherwise, their value is 0. These packets always have
+  exactly two sub-packets.
+- Packets with type ID 7 are equal to packets - their value is 1 if the
+  value of the first sub-packet is equal to the value of the second
+  sub-packet; otherwise, their value is 0. These packets always have
+  exactly two sub-packets.
+
+Using these rules, you can now work out the value of the outermost
+packet in your BITS transmission.
+
+For example:
+
+- C200B40A82 finds the sum of 1 and 2, resulting in the value 3.
+- 04005AC33890 finds the product of 6 and 9, resulting in the value 54.
+- 880086C3E88112 finds the minimum of 7, 8, and 9, resulting in the
+  value 7.
+- CE00C43D881120 finds the maximum of 7, 8, and 9, resulting in the
+  value 9.
+- D8005AC2A8F0 produces 1, because 5 is less than 15.
+- F600BC2D8F produces 0, because 5 is not greater than 15.
+- 9C005AC2F8F0 produces 0, because 5 is not equal to 15.
+- 9C0141080250320F1802104A08 produces 1, because 1 + 3 = 2 * 2.
+
+What do you get if you evaluate the expression represented by your
+hexadecimal-encoded BITS transmission?
 """
+import operator
 import os
+from functools import reduce
 from io import StringIO
 from typing import (
     Generator,
@@ -252,7 +303,7 @@ def parse_packet(file: TextIO) -> _Packet:
             )
 
         else:
-            raise ValueError(f"Unexpected length type id: {length_type_id}")
+            raise ValueError(f"Unexpected {length_type_id=}")
 
 
 def walk_packets(packet: _Packet) -> Generator[_Packet, None, None]:
@@ -276,8 +327,39 @@ def part1(data: str) -> int:
     return version_sum
 
 
-def part2(data: str) -> None:
-    ...
+def evaluate(packet: _Packet) -> int:
+    type_id = packet.type_id
+    if type_id == 0:
+        return sum(evaluate(child) for child in packet.children)
+    elif type_id == 1:
+        return reduce(operator.mul, (evaluate(child) for child in packet.children), 1)
+    elif type_id == 2:
+        return min(evaluate(child) for child in packet.children)
+    elif type_id == 3:
+        return max(evaluate(child) for child in packet.children)
+    elif type_id == 4:
+        assert packet.value is not None
+        return packet.value
+    elif type_id == 5:
+        assert len(packet.children) == 2
+        first, second = packet.children
+        return 1 if evaluate(first) > evaluate(second) else 0
+    elif type_id == 6:
+        assert len(packet.children) == 2
+        first, second = packet.children
+        return 1 if evaluate(first) < evaluate(second) else 0
+    elif type_id == 7:
+        assert len(packet.children) == 2
+        first, second = packet.children
+        return 1 if evaluate(first) == evaluate(second) else 0
+    else:
+        raise ValueError(f"Unexpected {type_id=}")
+
+
+def part2(data: str) -> int:
+    file = hex_to_binary_file(data)
+    packet = parse_packet(file)
+    return evaluate(packet)
 
 
 value_packet = "D2FE28"
@@ -304,7 +386,20 @@ def test_part1() -> None:
 
 
 def test_part2() -> None:
-    ...
+    packet = parse_packet(hex_to_binary_file("C200B40A82"))
+    assert evaluate(packet) == 3
+    packet = parse_packet(hex_to_binary_file("04005AC33890"))
+    assert evaluate(packet) == 54
+    packet = parse_packet(hex_to_binary_file("880086C3E88112"))
+    assert evaluate(packet) == 7
+    packet = parse_packet(hex_to_binary_file("CE00C43D881120"))
+    assert evaluate(packet) == 9
+    packet = parse_packet(hex_to_binary_file("D8005AC2A8F0"))
+    assert evaluate(packet) == 1
+    packet = parse_packet(hex_to_binary_file("F600BC2D8F"))
+    assert evaluate(packet) == 0
+    packet = parse_packet(hex_to_binary_file("9C0141080250320F1802104A08"))
+    assert evaluate(packet) == 1
 
 
 def main() -> None:

@@ -251,11 +251,11 @@ test_data = """\
 """
 
 
-def test_part1() -> int:
+def test_part1() -> None:
     assert part1(test_data) == 40
 
 
-def test_part2() -> int:
+def test_part2() -> None:
     assert part2(test_data) == 315
 
 

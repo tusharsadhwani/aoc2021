@@ -208,17 +208,9 @@ import operator
 import os
 from functools import reduce
 from io import StringIO
-from typing import (
-    Generator,
-    NamedTuple,
-    Optional,
-    Protocol,
-    TextIO,
-    runtime_checkable,
-)
+from typing import Generator, NamedTuple, Optional, Protocol, TextIO
 
 
-@runtime_checkable
 class _Packet(Protocol):
     @property
     def version(self) -> int:

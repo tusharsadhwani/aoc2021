@@ -251,6 +251,9 @@ def parse_packet(file: TextIO) -> _Packet:
                 children=children,
             )
 
+        else:
+            raise ValueError(f"Unexpected length type id: {length_type_id}")
+
 
 def walk_packets(packet: _Packet) -> Generator[_Packet, None, None]:
     yield packet

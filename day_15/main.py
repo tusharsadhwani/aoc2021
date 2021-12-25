@@ -186,8 +186,8 @@ entered, so its risk is not counted).
 Using the full map, what is the lowest total risk of any path from the
 top left to the bottom right?
 """
-from collections import defaultdict
 import os
+from collections import defaultdict
 from heapq import heappop, heappush
 from typing import DefaultDict, NamedTuple
 

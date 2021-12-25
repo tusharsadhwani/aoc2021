@@ -151,7 +151,6 @@ import os
 from contextlib import redirect_stdout
 from textwrap import dedent
 
-
 Dot = tuple[int, int]
 Fold = tuple[str, int]
 
